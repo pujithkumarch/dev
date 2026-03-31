@@ -1,4 +1,4 @@
-name: Test Kubernetes Connection (OIDC)
+name: Test Kubernetes Connection
 
 on:
   workflow_dispatch:
@@ -6,11 +6,6 @@ on:
 env:
   AWS_REGION: ap-south-1
   EKS_CLUSTER_NAME: myapp-eks-cluster
-
-# This block is mandatory to request the OIDC JWT token from GitHub
-permissions:
-  id-token: write
-  contents: read
 
 jobs:
   test-k8s:
@@ -23,8 +18,10 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::123456789012:role/YourGitHubActionsRole # Replace with your IAM Role ARN
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
+          web-identity-token-file: "" # Disables automatic OIDC lookups
 
       - name: Install kubectl
         uses: azure/setup-kubectl@v4
