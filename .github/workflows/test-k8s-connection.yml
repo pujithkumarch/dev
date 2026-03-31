@@ -45,17 +45,27 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "Image pushed successfully!"
 
-      # INSTALL KUBECTL AND AUTHENTICATOR
+      # INSTALL KUBECTL
       - name: Install kubectl
         uses: azure/setup-kubectl@v4
         with:
           version: latest
 
-      - name: Install AWS IAM Authenticator
+      # NEW: FORCE ACCESS ENTRY VIA AWS CLI
+      - name: Grant EKS Access to current IAM User
         run: |
-          curl -o aws-iam-authenticator https://s3.us-west-2.amazonaws.com/amazon-eks/1.21.2/2021-07-05/bin/linux/amd64/aws-iam-authenticator
-          chmod +x ./aws-iam-authenticator
-          sudo mv ./aws-iam-authenticator /usr/local/bin/
+          # 1. Get the exact ARN of the user you are logged in as
+          USER_ARN=$(aws sts get-caller-identity --query "Arn" --output text)
+          echo "Granting access to: $USER_ARN"
+          
+          # 2. Create the EKS Access Entry (fails safely if it already exists)
+          aws eks create-access-entry --cluster-name ${{ env.EKS_CLUSTER_NAME }} --principal-arn "$USER_ARN" || true
+          
+          # 3. Attach the Admin policy so you can run kubectl commands
+          aws eks associate-access-policy --cluster-name ${{ env.EKS_CLUSTER_NAME }} \
+            --principal-arn "$USER_ARN" \
+            --policy-arn arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy \
+            --access-scope '{"type": "cluster"}'
 
       - name: Update kubeconfig for EKS
         run: |
