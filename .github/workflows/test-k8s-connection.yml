@@ -6,7 +6,7 @@ on:
 env:
   AWS_REGION: ap-south-1
   EKS_CLUSTER_NAME: myapp-eks-cluster
-  ECR_REPOSITORY: myapp_docker_repo # 👈 Your exact ECR repository name
+  ECR_REPOSITORY: myapp_docker_repo 
 
 jobs:
   test-k8s:
