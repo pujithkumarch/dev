@@ -6,7 +6,7 @@ on:
 env:
   AWS_REGION: ap-south-1
   EKS_CLUSTER_NAME: myapp-eks-cluster
-  ECR_REPOSITORY: myapp_docker_repo 
+  ECR_REPOSITORY: myapp_docker_repo
 
 jobs:
   test-k8s:
@@ -24,17 +24,29 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           web-identity-token-file: "" # Disables automatic OIDC lookups
 
-      # LOG IN TO ECR & PUSH THE IMAGE
+      # LOG IN TO ECR
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      # AUTOMATICALLY FIND AND BUILD DOCKERFILE
       - name: Build, tag, and push image to Amazon ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }} # Gives the image a unique ID based on your commit
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          # This command searches your repo and finds the folder containing your Dockerfile
+          DOCKERFILE_PATH=$(find . -name Dockerfile -exec dirname {} \;)
+          
+          if [ -z "$DOCKERFILE_PATH" ]; then
+            echo "❌ ERROR: Still could not find a file named Dockerfile anywhere in the repository!"
+            exit 1
+          fi
+          
+          echo "Found Dockerfile in folder: $DOCKERFILE_PATH"
+          
+          # Build using the folder we just found
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG "$DOCKERFILE_PATH"
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "Image pushed successfully!"
 
