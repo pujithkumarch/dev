@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp-deployment
+  labels:
+    app: myapp
+spec:
+  replicas: 2 # Runs 2 copies of your app for safety
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:
+      - name: myapp-container
+        # GitHub will replace this string automatically with your real image address!
+        image: MY_IMAGE_PLACEHOLDER 
+        ports:
+        - containerPort: 80
