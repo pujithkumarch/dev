@@ -41,7 +41,6 @@ jobs:
           fi
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG "$DOCKERFILE_PATH"
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          # Save the full image name for the next steps
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Install kubectl
@@ -62,7 +61,6 @@ jobs:
         run: |
           aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.EKS_CLUSTER_NAME }}
 
-      # NEW: INJECT IMAGE AND DEPLOY TO K8S!
       - name: Deploy to EKS
         env:
           FULL_IMAGE: ${{ steps.build-image.outputs.image }}
@@ -74,8 +72,4 @@ jobs:
           kubectl apply -f k8s/deployment.yaml
           kubectl apply -f k8s/service.yaml
           
-          # Wait for deployment to finish
-          kubectl rollout status deployment/myapp-deployment --timeout=120s
-          
-          echo "Website successfully deployed!"
-          echo "Run 'kubectl get svc myapp-service' to find your public URL!"
+          echo "Successfully sent deployment instructions to Kubernetes!"
