@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask K8s Dashboard</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --accent: #38bdf8;
+            --text: #f8fafc;
+            --success: #4ade80;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: var(--card);
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        h1 {
+            color: var(--accent);
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        .status-badge {
+            display: inline-block;
+            background-color: rgba(74, 222, 128, 0.1);
+            color: var(--success);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-weight: bold;
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--success);
+        }
+        .info-grid {
+            text-align: left;
+            background-color: rgba(15, 23, 42, 0.5);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            font-family: monospace;
+        }
+        .info-item:last-child { margin-bottom: 0; }
+        .label { color: #94a3b8; }
+        .value { color: var(--text); font-weight: bold; }
+        .btn {
+            background-color: var(--accent);
+            color: #0f172a;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(56, 189, 248, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Flask GitFlow POC</h1>
+        <div class="status-badge">● Environment: {{ env | upper }}</div>
+        
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="label">App Status:</span>
+                <span class="value" style="color: var(--success)">Active</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Framework:</span>
+                <span class="value">Flask (Python 3.11)</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Orchestrator:</span>
+                <span class="value">Kubernetes (K8s)</span>
+            </div>
+        </div>
+
+        <a href="/health" class="btn" target="_blank">Test Health Endpoint</a>
+    </div>
+</body>
+</html>
