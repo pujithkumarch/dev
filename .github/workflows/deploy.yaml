@@ -45,4 +45,6 @@ jobs:
         run: |
           echo "${{ secrets.KUBECONFIG }}" | base64 -d > kubeconfig.yaml
           export KUBECONFIG=kubeconfig.yaml
-          kubectl set image deployment/myapp-
+          kubectl set image deployment/myapp-deployment \
+          myapp-container=${{ secrets.ECR_REGISTRY }}/myapp_docker_repo:$BRANCH_NAME \
+          -n $K8S_NAMESPACE
