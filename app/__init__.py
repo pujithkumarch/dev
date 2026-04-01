@@ -18,14 +18,3 @@ def create_app():
         })
 
     return app
-```
-
----
-
-### File 5: `requirements.txt`
-
-Check if it exists — if not, add it:
-```
-flask==3.0.0
-gunicorn==21.2.0
-pytest==7.4.0
