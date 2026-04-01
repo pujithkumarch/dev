@@ -37,13 +37,12 @@ jobs:
 
       - name: Build & Push Docker Image
         run: |
-          docker build -t flask-api:$BRANCH_NAME .
-          docker tag flask-api:$BRANCH_NAME ${{ secrets.ECR_REGISTRY }}/flask-api:$BRANCH_NAME
-          docker push ${{ secrets.ECR_REGISTRY }}/flask-api:$BRANCH_NAME
+          docker build -t myapp_docker_repo:$BRANCH_NAME .
+          docker tag myapp_docker_repo:$BRANCH_NAME ${{ secrets.ECR_REGISTRY }}/myapp_docker_repo:$BRANCH_NAME
+          docker push ${{ secrets.ECR_REGISTRY }}/myapp_docker_repo:$BRANCH_NAME
 
       - name: Deploy to Kubernetes Namespace
         run: |
           echo "${{ secrets.KUBECONFIG }}" | base64 -d > kubeconfig.yaml
           export KUBECONFIG=kubeconfig.yaml
-          kubectl set image deployment/myapp-deployment myapp=\
-          ${{ secrets.ECR_REGISTRY }}/flask-api:$BRANCH_NAME -n $K8S_NAMESPACE
+          kubectl set image deployment/myapp-
