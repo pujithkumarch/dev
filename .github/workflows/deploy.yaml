@@ -24,6 +24,11 @@ jobs:
             echo "K8S_NAMESPACE=flask-dev" >> $GITHUB_ENV
           fi
 
+      - name: Run Tests
+        run: |
+          pip install flask pytest
+          pytest tests/ -v
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
