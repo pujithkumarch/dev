@@ -1,108 +1,295 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flask K8s Dashboard</title>
-    <style>
-        :root {
-            --bg: #0f172a;
-            --card: #1e293b;
-            --accent: #38bdf8;
-            --text: #f8fafc;
-            --success: #4ade80;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .container {
-            background-color: var(--card);
-            padding: 2.5rem;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            max-width: 500px;
-            width: 100%;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        h1 {
-            color: var(--accent);
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-        .status-badge {
-            display: inline-block;
-            background-color: rgba(74, 222, 128, 0.1);
-            color: var(--success);
-            padding: 0.5rem 1rem;
-            border-radius: 9999px;
-            font-weight: bold;
-            font-size: 0.875rem;
-            margin-bottom: 1.5rem;
-            border: 1px solid var(--success);
-        }
-        .info-grid {
-            text-align: left;
-            background-color: rgba(15, 23, 42, 0.5);
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
-        }
-        .info-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.75rem;
-            font-family: monospace;
-        }
-        .info-item:last-child { margin-bottom: 0; }
-        .label { color: #94a3b8; }
-        .value { color: var(--text); font-weight: bold; }
-        .btn {
-            background-color: var(--accent);
-            color: #0f172a;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(56, 189, 248, 0.4);
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DevOps Project Expo — SNIST</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f0f2f9; --card: #ffffff; --accent: #5b5ef4; --accent2: #818cf8;
+      --text: #1e1e2e; --muted: #6b7280; --border: #e2e8f0;
+      --success: #22c55e; --radius: 14px;
+    }
+    body {
+      font-family: "DM Sans", sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex;
+      justify-content: center; align-items: flex-start;
+      padding: 2rem 1rem; position: relative; overflow-x: hidden;
+    }
+    #bg-canvas {
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none; z-index: 0; opacity: 0.18;
+    }
+    .page-wrap { position: relative; z-index: 1; width: 100%; max-width: 660px; }
+    .breadcrumb { font-size: 0.72rem; color: var(--muted); margin-bottom: 0.6rem; letter-spacing: 0.04em; }
+    .breadcrumb span { color: var(--accent); }
+    .header-title { font-family: "DM Serif Display", serif; font-size: 2rem; font-weight: 400; color: var(--text); line-height: 1.2; margin-bottom: 0.2rem; }
+    .header-title span { color: var(--accent); }
+    .header-sub { font-size: 0.8rem; color: var(--muted); margin-bottom: 1.2rem; font-style: italic; }
+    .team-bar {
+      display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 0.65rem 1rem; margin-bottom: 1.2rem;
+    }
+    .team-label { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; margin-right: 0.3rem; }
+    .team-chip { font-size: 0.75rem; background: rgba(91,94,244,0.09); color: var(--accent); border: 1px solid rgba(91,94,244,0.2); border-radius: 999px; padding: 0.25rem 0.75rem; font-weight: 500; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1rem; }
+    .card-title { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 1rem; }
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .field { display: flex; flex-direction: column; gap: 0.35rem; }
+    .field label { font-size: 0.75rem; font-weight: 500; color: var(--muted); }
+    input[type="text"], select, textarea {
+      width: 100%; padding: 0.6rem 0.85rem; font-size: 0.9rem;
+      font-family: "DM Sans", sans-serif; color: var(--text);
+      background: #f8faff; border: 1px solid var(--border);
+      border-radius: 8px; outline: none; transition: border-color 0.2s;
+      appearance: none; -webkit-appearance: none;
+    }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 0.85rem center;
+      padding-right: 2.2rem; cursor: pointer;
+    }
+    select option { font-size: 0.9rem; font-family: "DM Sans", sans-serif; color: var(--text); background: #ffffff; padding: 8px 12px; }
+    input[type="text"]:focus, select:focus, textarea:focus {
+      border-color: var(--accent); background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(91,94,244,0.1);
+    }
+    textarea { height: 100px; resize: vertical; }
+    .req { color: var(--accent); }
+    .rating-row { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
+    .rating-row:last-child { border-bottom: none; }
+    .rating-label { font-size: 0.82rem; color: var(--text); flex: 1; }
+    .rating-btns { display: flex; gap: 0.35rem; align-items: center; }
+    .rating-btns button {
+      width: 30px; height: 30px; border-radius: 50%;
+      border: 1.5px solid var(--border); background: transparent;
+      font-size: 0.78rem; font-weight: 600; color: var(--muted);
+      cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .rating-btns button:hover { border-color: var(--accent); color: var(--accent); }
+    .rating-btns button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .rating-val { font-size: 0.72rem; color: var(--muted); min-width: 48px; text-align: right; }
+    .btn-submit {
+      width: 100%; padding: 0.8rem; background: var(--accent); color: #fff;
+      border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 600;
+      font-family: "DM Sans", sans-serif; cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s; margin-top: 0.5rem;
+    }
+    .btn-submit:hover { opacity: 0.9; }
+    .btn-submit:active { transform: scale(0.99); }
+    .toast {
+      display: none; position: fixed; bottom: 2rem; left: 50%;
+      transform: translateX(-50%); background: var(--success); color: #fff;
+      padding: 0.75rem 1.5rem; border-radius: 999px; font-size: 0.875rem;
+      font-weight: 600; z-index: 999; box-shadow: 0 4px 20px rgba(34,197,94,0.35);
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+    .fade-in { animation: fadeIn 0.5s ease both; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @media (max-width: 520px) {
+      .row-2 { grid-template-columns: 1fr; }
+      .header-title { font-size: 1.6rem; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Flask GitFlow POC</h1>
-        <div class="status-badge">● Environment: {{ env | upper }}</div>
-        
-        <div class="info-grid">
-            <div class="info-item">
-                <span class="label">App Status:</span>
-                <span class="value" style="color: var(--success)">Active</span>
-            </div>
-            <div class="info-item">
-                <span class="label">Framework:</span>
-                <span class="value">Flask (Python 3.11)</span>
-            </div>
-            <div class="info-item">
-                <span class="label">Orchestrator:</span>
-                <span class="value">Kubernetes (K8s)</span>
-            </div>
-        </div>
-
-        <a href="/health" class="btn" target="_blank">Test Health Endpoint</a>
+<canvas id="bg-canvas"></canvas>
+<div class="page-wrap">
+  <div class="breadcrumb fade-in">SNIST — <span>Sreenidhi Institute of Science &amp; Technology</span></div>
+  <h1 class="header-title fade-in">DevOps Project Expo <span>SNIST</span></h1>
+  <p class="header-sub fade-in">Faculty evaluation form — Batch #03 Advanced DevOps</p>
+  <div class="team-bar fade-in">
+    <span class="team-label">TEAM</span>
+    <span class="team-chip">Pujith Kumar Chittipolu</span>
+    <span class="team-chip">Abhinaya Akula</span>
+    <span class="team-chip">Siri Charitha Uppala</span>
+    <span class="team-chip">Laasya Rampudi</span>
+  </div>
+  <div class="card fade-in">
+    <div class="card-title">Faculty Information</div>
+    <div class="row-2">
+      <div class="field">
+        <label>Faculty name <span class="req">*</span></label>
+        <input type="text" id="faculty_name" placeholder="Dr. / Prof. full name" required />
+      </div>
+      <div class="field">
+        <label>Department <span class="req">*</span></label>
+        <select id="department" required>
+          <option value="" disabled selected>Select department</option>
+          <option value="CSE">CSE</option>
+          <option value="ECE">ECE</option>
+          <option value="EEE">EEE</option>
+          <option value="IT">IT</option>
+          <option value="Mechanical">Mechanical</option>
+          <option value="Civil">Civil</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
     </div>
+    <div class="field">
+      <label>Designation</label>
+      <select id="designation">
+        <option value="" disabled selected>Select designation</option>
+        <option value="Professor">Professor</option>
+        <option value="Associate Professor">Associate Professor</option>
+        <option value="Assistant Professor">Assistant Professor</option>
+        <option value="Head of Department">Head of Department</option>
+        <option value="Dean">Dean</option>
+        <option value="Industry Expert">Industry Expert</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+  </div>
+  <div class="card fade-in">
+    <div class="card-title">Project Evaluation — Ratings</div>
+    <div class="rating-row">
+      <span class="rating-label">Technical complexity &amp; implementation</span>
+      <div class="rating-btns" id="r-technical">
+        <button onclick="rate('technical',1)">1</button>
+        <button onclick="rate('technical',2)">2</button>
+        <button onclick="rate('technical',3)">3</button>
+        <button onclick="rate('technical',4)">4</button>
+        <button onclick="rate('technical',5)">5</button>
+      </div>
+      <span class="rating-val" id="rv-technical">Not rated</span>
+    </div>
+    <div class="rating-row">
+      <span class="rating-label">Understanding of CI/CD &amp; DevOps concepts</span>
+      <div class="rating-btns" id="r-cicd">
+        <button onclick="rate('cicd',1)">1</button>
+        <button onclick="rate('cicd',2)">2</button>
+        <button onclick="rate('cicd',3)">3</button>
+        <button onclick="rate('cicd',4)">4</button>
+        <button onclick="rate('cicd',5)">5</button>
+      </div>
+      <span class="rating-val" id="rv-cicd">Not rated</span>
+    </div>
+    <div class="rating-row">
+      <span class="rating-label">Presentation &amp; live demonstration</span>
+      <div class="rating-btns" id="r-presentation">
+        <button onclick="rate('presentation',1)">1</button>
+        <button onclick="rate('presentation',2)">2</button>
+        <button onclick="rate('presentation',3)">3</button>
+        <button onclick="rate('presentation',4)">4</button>
+        <button onclick="rate('presentation',5)">5</button>
+      </div>
+      <span class="rating-val" id="rv-presentation">Not rated</span>
+    </div>
+    <div class="rating-row">
+      <span class="rating-label">Overall project quality</span>
+      <div class="rating-btns" id="r-overall">
+        <button onclick="rate('overall',1)">1</button>
+        <button onclick="rate('overall',2)">2</button>
+        <button onclick="rate('overall',3)">3</button>
+        <button onclick="rate('overall',4)">4</button>
+        <button onclick="rate('overall',5)">5</button>
+      </div>
+      <span class="rating-val" id="rv-overall">Not rated</span>
+    </div>
+  </div>
+  <div class="card fade-in">
+    <div class="card-title">Written Feedback</div>
+    <div class="field" style="margin-bottom:1rem;">
+      <label>Additional comments &amp; remarks</label>
+      <textarea id="comments" placeholder="Any observations, suggestions, or remarks about the project..."></textarea>
+    </div>
+    <div class="field">
+      <label>Overall grade recommendation <span class="req">*</span></label>
+      <select id="grade" required>
+        <option value="" disabled selected>Select grade</option>
+        <option value="O">O — Outstanding</option>
+        <option value="A+">A+ — Excellent</option>
+        <option value="A">A — Very Good</option>
+        <option value="B+">B+ — Good</option>
+        <option value="B">B — Average</option>
+        <option value="C">C — Below Average</option>
+      </select>
+    </div>
+    <button class="btn-submit" onclick="submitForm()">Submit feedback</button>
+  </div>
+</div>
+<div class="toast" id="toast">✓ Feedback submitted successfully!</div>
+<script>
+  const ratings = { technical: null, cicd: null, presentation: null, overall: null };
+  function rate(key, val) {
+    ratings[key] = val;
+    document.querySelectorAll(`#r-${key} button`).forEach((b, i) => b.classList.toggle('active', i < val));
+    document.getElementById(`rv-${key}`).textContent = val + ' / 5';
+  }
+  async function submitForm() {
+    const name = document.getElementById('faculty_name').value.trim();
+    const dept = document.getElementById('department').value;
+    const desig = document.getElementById('designation').value;
+    const comments = document.getElementById('comments').value.trim();
+    const grade = document.getElementById('grade').value;
+    if (!name || !dept || !grade) { alert('Please fill in all required fields.'); return; }
+    const payload = {
+      faculty_name: name, department: dept, designation: desig,
+      ratings: { technical_complexity: ratings.technical, cicd_understanding: ratings.cicd, presentation: ratings.presentation, overall_quality: ratings.overall },
+      comments: comments, grade_recommendation: grade
+    };
+    try {
+      const res = await fetch('/api/feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      if (res.ok) { showToast(); resetForm(); } else { alert('Submission failed. Please try again.'); }
+    } catch (e) { alert('Network error.'); }
+  }
+  function showToast() {
+    const t = document.getElementById('toast');
+    t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; }, 3500);
+  }
+  function resetForm() {
+    ['faculty_name','department','designation','comments','grade'].forEach(id => document.getElementById(id).value = '');
+    Object.keys(ratings).forEach(k => {
+      ratings[k] = null;
+      document.querySelectorAll(`#r-${k} button`).forEach(b => b.classList.remove('active'));
+      document.getElementById(`rv-${k}`).textContent = 'Not rated';
+    });
+  }
+  (function () {
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    const symbols = ['☁', '⚙', '🐳', '⚡', '◈', '{}', '</>'];
+    const particles = [];
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    resize();
+    window.addEventListener('resize', resize);
+    for (let i = 0; i < 22; i++) {
+      particles.push({ x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight,
+        sym: symbols[Math.floor(Math.random() * symbols.length)],
+        size: 14 + Math.random() * 18, speedX: (Math.random() - 0.5) * 0.4,
+        speedY: -0.3 - Math.random() * 0.4, opacity: 0.3 + Math.random() * 0.5 });
+    }
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        ctx.save(); ctx.globalAlpha = p.opacity;
+        ctx.font = `${p.size}px monospace`; ctx.fillStyle = '#5b5ef4';
+        ctx.fillText(p.sym, p.x, p.y); ctx.restore();
+        p.x += p.speedX; p.y += p.speedY;
+        if (p.y < -30) { p.y = canvas.height + 20; p.x = Math.random() * canvas.width; }
+        if (p.x < -30) p.x = canvas.width + 10;
+        if (p.x > canvas.width + 30) p.x = -10;
+      });
+      requestAnimationFrame(draw);
+    }
+    draw();
+  })();
+</script>
 </body>
 </html>
