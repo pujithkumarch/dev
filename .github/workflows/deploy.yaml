@@ -1,0 +1,56 @@
+name: CI/CD GitFlow Pipeline
+
+on:
+  push:
+    branches: [develop, staging, main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set Environment Variables
+        run: |
+          BRANCH=${GITHUB_REF#refs/heads/}
+          echo "BRANCH_NAME=$BRANCH" >> $GITHUB_ENV
+          if [ "$BRANCH" = "main" ]; then
+            echo "K8S_NAMESPACE=flask-prod" >> $GITHUB_ENV
+          elif [ "$BRANCH" = "staging" ]; then
+            echo "K8S_NAMESPACE=flask-staging" >> $GITHUB_ENV
+          else
+            echo "K8S_NAMESPACE=flask-dev" >> $GITHUB_ENV
+          fi
+
+      - name: Run Tests
+        run: |
+          pip install flask pytest
+          pytest tests/ -v
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
+
+      - name: Login to Amazon ECR
+        run: |
+          aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+
+      - name: Build & Push Docker Image
+        run: |
+          docker build -t myapp_docker_repo:$BRANCH_NAME .
+          docker tag myapp_docker_repo:$BRANCH_NAME ${{ secrets.ECR_REGISTRY }}/myapp_docker_repo:$BRANCH_NAME
+          docker push ${{ secrets.ECR_REGISTRY }}/myapp_docker_repo:$BRANCH_NAME
+
+      - name: Deploy to Kubernetes Namespace
+        run: |
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > kubeconfig.yaml
+          export KUBECONFIG=kubeconfig.yaml
+          kubectl set image deployment/myapp-deployment \
+          myapp=${{ secrets.ECR_REGISTRY }}/myapp_docker_repo:$BRANCH_NAME \
+          -n $K8S_NAMESPACE
+          kubectl rollout status deployment/myapp-deployment -n $K8S_NAMESPACE
