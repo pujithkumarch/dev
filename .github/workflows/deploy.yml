@@ -47,7 +47,10 @@ jobs:
             echo "NAMESPACE=flask-dev" >> $GITHUB_ENV
           fi
 
-      - name: Deploy to correct K8s namespace
+      - name: Confirm deployment target
         run: |
-          echo "Deploying to namespace: $NAMESPACE"
-          echo "Branch ${{ github.ref_name }} → Namespace $NAMESPACE → ECR Image $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          echo "✅ Branch: ${{ github.ref_name }}"
+          echo "✅ Namespace: $NAMESPACE"
+          echo "✅ Image: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          echo "✅ Docker image built and pushed to ECR successfully"
+          echo "✅ K3s cluster on EC2 will pull fresh image automatically"
