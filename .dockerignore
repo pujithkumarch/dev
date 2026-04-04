@@ -1,0 +1,5 @@
+aws
+awscliv2.zip
+*.yaml
+__pycache__
+*.pyc

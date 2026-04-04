@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-feedback
+  namespace: flask-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask-feedback
+  template:
+    metadata:
+      labels:
+        app: flask-feedback
+    spec:
+      containers:
+      - name: flask-feedback
+        image: 504110891275.dkr.ecr.ap-south-1.amazonaws.com/myapp_docker_repo:feedback
+        ports:
+        - containerPort: 5000
+        env:
+        - name: APP_ENV
+          value: "dev"
+        - name: MONGO_URI
+          value: "mongodb://mongo-service:27017/"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-service
+  namespace: flask-dev
+spec:
+  selector:
+    app: flask-feedback
+  type: NodePort
+  ports:
+  - port: 5000
+    targetPort: 5000
+    nodePort: 30080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+  namespace: flask-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+      - name: mongo
+        image: mongo:6
+        ports:
+        - containerPort: 27017
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-service
+  namespace: flask-dev
+spec:
+  selector:
+    app: mongo
+  ports:
+  - port: 27017
+    targetPort: 27017

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DevOps Project Expo — SNIST</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f0f2f7; --surface: #ffffff; --surface2: #f7f8fc;
+    --border: #e2e5ef; --accent: #5b6cf9; --accent2: #8b5cf6;
+    --text: #1a1d2e; --muted: #6b7280; --success: #10b981;
+    --radius: 14px; --shadow: 0 2px 16px rgba(80,90,180,0.08);
+    --shadow-lg: 0 8px 40px rgba(80,90,180,0.14);
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+  #bg-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .sym { position: absolute; opacity: 0; animation: floatSym linear infinite; will-change: transform, opacity; user-select: none; }
+  @keyframes floatSym {
+    0%   { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0; }
+    10%  { opacity: var(--op); }
+    50%  { transform: translateY(-60px) rotate(12deg) scale(1.05); opacity: var(--op); }
+    90%  { opacity: var(--op); }
+    100% { transform: translateY(-130px) rotate(-8deg) scale(0.95); opacity: 0; }
+  }
+  .page { position: relative; z-index: 1; max-width: 680px; margin: 0 auto; padding: 48px 20px 80px; }
+  .header-pill { display: inline-flex; align-items: center; gap: 7px; background: var(--surface); border: 1px solid var(--border); border-radius: 100px; padding: 6px 14px; font-size: 12px; font-weight: 500; color: var(--muted); margin-bottom: 20px; letter-spacing: 0.02em; }
+  .header-pill::before { content: ''; width: 7px; height: 7px; background: var(--success); border-radius: 50%; display: inline-block; }
+  h1 { font-family: 'Syne', sans-serif; font-size: clamp(28px, 5vw, 42px); font-weight: 800; line-height: 1.1; color: var(--text); margin-bottom: 8px; }
+  h1 span { color: var(--accent); }
+  .subtitle { font-size: 14px; color: var(--muted); margin-bottom: 28px; font-style: italic; font-weight: 300; }
+  .team-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 36px; }
+  .team-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+  .chip { background: var(--surface); border: 1px solid var(--border); border-radius: 100px; padding: 5px 13px; font-size: 13px; font-weight: 500; color: var(--text); transition: border-color 0.2s, background 0.2s; }
+  .chip:hover { border-color: var(--accent); background: #f0f1ff; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px 28px 24px; margin-bottom: 16px; box-shadow: var(--shadow); transition: box-shadow 0.25s; }
+  .card:hover { box-shadow: var(--shadow-lg); }
+  .card-title { font-size: 10.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  label { font-size: 12.5px; font-weight: 500; color: var(--muted); }
+  label .req { color: var(--accent); margin-left: 2px; }
+  input[type="text"] { height: 44px; border: 1.5px solid var(--border); border-radius: 10px; padding: 0 14px; font-family: inherit; font-size: 15px; color: var(--text); background: var(--surface2); transition: border-color 0.2s, box-shadow 0.2s; outline: none; width: 100%; }
+  input[type="text"]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,108,249,0.12); }
+  .custom-select-wrap { position: relative; }
+  .custom-select-btn { height: 44px; width: 100%; border: 1.5px solid var(--border); border-radius: 10px; padding: 0 38px 0 14px; font-family: inherit; font-size: 15px; color: var(--muted); background: var(--surface2); cursor: pointer; text-align: left; transition: border-color 0.2s, box-shadow 0.2s; display: flex; align-items: center; justify-content: space-between; user-select: none; outline: none; }
+  .custom-select-btn.has-value { color: var(--text); }
+  .custom-select-btn:focus, .custom-select-btn.open { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,108,249,0.12); }
+  .select-arrow { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); pointer-events: none; transition: transform 0.2s; }
+  .custom-select-btn.open + .select-arrow { transform: translateY(-50%) rotate(180deg); }
+  .dropdown-portal { position: fixed; z-index: 99999; background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px; box-shadow: 0 12px 40px rgba(80,90,180,0.18); overflow-y: auto; max-height: 240px; display: none; }
+  .dropdown-portal.open { display: block; }
+  .dp-option { padding: 11px 16px; font-size: 15px; color: var(--text); cursor: pointer; line-height: 1.4; transition: background 0.15s; white-space: nowrap; font-family: 'DM Sans', sans-serif; }
+  .dp-option:hover { background: #f0f1ff; color: var(--accent); }
+  .dp-option.selected { background: #eeefff; color: var(--accent); font-weight: 600; }
+  .dp-option:first-child { border-radius: 10px 10px 0 0; }
+  .dp-option:last-child { border-radius: 0 0 10px 10px; }
+  .rating-row { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .rating-row:last-child { border-bottom: none; }
+  .rating-label { flex: 1; font-size: 14px; color: var(--text); font-weight: 400; }
+  .rating-btns { display: flex; gap: 6px; align-items: center; }
+  .rb { width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--surface2); font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; transition: all 0.18s; display: flex; align-items: center; justify-content: center; font-family: inherit; }
+  .rb:hover { border-color: var(--accent); color: var(--accent); background: #f0f1ff; }
+  .rb.active { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 2px 10px rgba(91,108,249,0.35); transform: scale(1.1); }
+  .rating-status { font-size: 12px; color: var(--muted); min-width: 56px; text-align: right; }
+  textarea { width: 100%; min-height: 110px; border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 14px; font-family: inherit; font-size: 15px; color: var(--text); background: var(--surface2); resize: vertical; outline: none; transition: border-color 0.2s, box-shadow 0.2s; margin-bottom: 16px; line-height: 1.6; }
+  textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,108,249,0.12); }
+  .submit-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 28px; box-shadow: var(--shadow); }
+  .btn-submit { width: 100%; height: 52px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; border-radius: 12px; color: #fff; font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: 0.04em; cursor: pointer; transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s; box-shadow: 0 4px 20px rgba(91,108,249,0.35); }
+  .btn-submit:hover { opacity: 0.92; transform: translateY(-1px); box-shadow: 0 8px 28px rgba(91,108,249,0.4); }
+  .btn-submit:active { transform: translateY(0); }
+  #toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1a1d2e; color: #fff; padding: 14px 28px; border-radius: 100px; font-size: 14px; font-weight: 500; opacity: 0; transition: all 0.35s cubic-bezier(.34,1.56,.64,1); pointer-events: none; z-index: 99999; white-space: nowrap; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  @media (max-width: 520px) { .field-row { grid-template-columns: 1fr; } .rating-label { font-size: 13px; } .rb { width: 32px; height: 32px; font-size: 12px; } .card { padding: 20px 18px; } }
+</style>
+</head>
+<body>
+<div id="bg-canvas"></div>
+<div id="portal"></div>
+<div class="page">
+  <div class="header-pill">SNIST — Sreenidhi Institute of Science &amp; Technology</div>
+  <h1>DevOps Project Expo <span>SNIST</span></h1>
+  <p class="subtitle">Faculty evaluation form — Batch #03 Advanced CI/CD</p>
+  <div class="team-bar">
+    <span class="team-label">Team</span>
+    <span class="chip">Pujith Kumar Chittipolu</span>
+    <span class="chip">Abhinaya Akula</span>
+    <span class="chip">Siri Charitha Uppala</span>
+    <span class="chip">Laasya Rampudi</span>
+  </div>
+  <div class="card">
+    <div class="card-title">Faculty Information</div>
+    <div class="field-row">
+      <div class="field">
+        <label>Faculty name <span class="req">*</span></label>
+        <input type="text" id="faculty_name" placeholder="Dr. / Prof. full name" />
+      </div>
+      <div class="field">
+        <label>Department <span class="req">*</span></label>
+        <div class="custom-select-wrap">
+          <button class="custom-select-btn" id="dept-btn" data-field="department" type="button">
+            <span class="btn-text">Select department</span>
+          </button>
+          <svg class="select-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M4 6l4 4 4-4" stroke="#9ca3af" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Designation</label>
+      <div class="custom-select-wrap">
+        <button class="custom-select-btn" id="desig-btn" data-field="designation" type="button">
+          <span class="btn-text">Select designation</span>
+        </button>
+        <svg class="select-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M4 6l4 4 4-4" stroke="#9ca3af" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Project Evaluation — Ratings</div>
+    <div class="rating-row">
+      <span class="rating-label">Technical complexity &amp; implementation</span>
+      <div class="rating-btns" data-key="technical_complexity">
+        <button class="rb" data-val="1">1</button><button class="rb" data-val="2">2</button><button class="rb" data-val="3">3</button><button class="rb" data-val="4">4</button><button class="rb" data-val="5">5</button>
+      </div>
+      <span class="rating-status">Not rated</span>
+    </div>
+    <div class="rating-row">
+      <span class="rating-label">Understanding of CI/CD &amp; DevOps concepts</span>
+      <div class="rating-btns" data-key="cicd_understanding">
+        <button class="rb" data-val="1">1</button><button class="rb" data-val="2">2</button><button class="rb" data-val="3">3</button><button class="rb" data-val="4">4</button><button class="rb" data-val="5">5</button>
+      </div>
+      <span class="rating-status">Not rated</span>
+    </div>
+    <div class="rating-row">
+      <span class="rating-label">Presentation &amp; live demonstration</span>
+      <div class="rating-btns" data-key="presentation">
+        <button class="rb" data-val="1">1</button><button class="rb" data-val="2">2</button><button class="rb" data-val="3">3</button><button class="rb" data-val="4">4</button><button class="rb" data-val="5">5</button>
+      </div>
+      <span class="rating-status">Not rated</span>
+    </div>
+    <div class="rating-row">
+      <span class="rating-label">Overall project quality</span>
+      <div class="rating-btns" data-key="overall_quality">
+        <button class="rb" data-val="1">1</button><button class="rb" data-val="2">2</button><button class="rb" data-val="3">3</button><button class="rb" data-val="4">4</button><button class="rb" data-val="5">5</button>
+      </div>
+      <span class="rating-status">Not rated</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Written Feedback</div>
+    <div class="field">
+      <label>Additional comments &amp; remarks</label>
+      <textarea id="comments" placeholder="Any observations, suggestions, or remarks about the project…"></textarea>
+    </div>
+    <div class="field">
+      <label>Overall grade recommendation <span class="req">*</span></label>
+      <div class="custom-select-wrap">
+        <button class="custom-select-btn" id="grade-btn" data-field="grade" type="button">
+          <span class="btn-text">Select grade</span>
+        </button>
+        <svg class="select-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M4 6l4 4 4-4" stroke="#9ca3af" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div class="submit-card">
+    <button class="btn-submit" id="submit-btn">Submit Feedback</button>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+const symbols = ['☁', '⚙', '🐳', '⚡', '◆'];
+const canvas = document.getElementById('bg-canvas');
+for (let i = 0; i < 14; i++) {
+  const el = document.createElement('span');
+  el.className = 'sym';
+  el.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+  const op = (0.10 + Math.random() * 0.15).toFixed(2);
+  el.style.cssText = `left:${Math.random()*100}%;top:${20+Math.random()*70}%;animation-duration:${12+Math.random()*14}s;animation-delay:${Math.random()*-20}s;--op:${op};font-size:${22+Math.random()*16}px;`;
+  canvas.appendChild(el);
+}
+const OPTIONS = {
+  department: ['CSE','ECE','EEE','IT','Mechanical','Civil','Other'],
+  designation: ['Professor','Associate Professor','Assistant Professor','HOD','Dean','Other'],
+  grade: ['O — Outstanding','A+ — Excellent','A — Very Good','B+ — Good','B — Average','C — Below Average']
+};
+const GRADE_MAP = {'O — Outstanding':'O','A+ — Excellent':'A+','A — Very Good':'A','B+ — Good':'B+','B — Average':'B','C — Below Average':'C'};
+const formData = {department:'',designation:'',grade:''};
+let activePortal = null, activeBtn = null;
+const portal = document.getElementById('portal');
+function positionPortal(ul, btn) {
+  const r = btn.getBoundingClientRect();
+  const ulH = Math.min(240, OPTIONS[btn.dataset.field].length * 44);
+  ul.style.width = r.width + 'px';
+  ul.style.left = r.left + 'px';
+  if (window.innerHeight - r.bottom >= ulH || window.innerHeight - r.bottom >= r.top) {
+    ul.style.top = (r.bottom + 4) + 'px'; ul.style.bottom = 'auto';
+  } else {
+    ul.style.top = 'auto'; ul.style.bottom = (window.innerHeight - r.top + 4) + 'px';
+  }
+}
+function closePortal() {
+  if (activePortal) { activePortal.remove(); activePortal = null; window.removeEventListener('scroll', window._ph, true); window.removeEventListener('resize', window._ph); }
+  if (activeBtn) { activeBtn.classList.remove('open'); activeBtn = null; }
+}
+function createPortalDropdown(btn, field) {
+  closePortal();
+  const ul = document.createElement('div');
+  ul.className = 'dropdown-portal open';
+  OPTIONS[field].forEach(opt => {
+    const div = document.createElement('div');
+    div.className = 'dp-option' + (formData[field] === opt ? ' selected' : '');
+    div.textContent = opt;
+    div.addEventListener('mousedown', e => {
+      e.preventDefault();
+      formData[field] = opt;
+      btn.querySelector('.btn-text').textContent = opt;
+      btn.classList.add('has-value');
+      closePortal();
+    });
+    ul.appendChild(div);
+  });
+  positionPortal(ul, btn);
+  portal.appendChild(ul);
+  activePortal = ul; activeBtn = btn; btn.classList.add('open');
+  window._ph = () => positionPortal(ul, btn);
+  window.addEventListener('scroll', window._ph, true);
+  window.addEventListener('resize', window._ph);
+}
+['dept-btn','desig-btn','grade-btn'].forEach(id => {
+  const btn = document.getElementById(id);
+  btn.addEventListener('click', e => { e.stopPropagation(); if (activeBtn === btn) { closePortal(); return; } createPortalDropdown(btn, btn.dataset.field); });
+});
+document.addEventListener('click', e => { if (!e.target.closest('.custom-select-wrap') && !e.target.closest('.dropdown-portal')) closePortal(); });
+const ratings = {};
+document.querySelectorAll('.rating-btns').forEach(group => {
+  const key = group.dataset.key; ratings[key] = null;
+  const statusEl = group.closest('.rating-row').querySelector('.rating-status');
+  group.querySelectorAll('.rb').forEach(btn => {
+    btn.addEventListener('click', () => {
+      group.querySelectorAll('.rb').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      ratings[key] = parseInt(btn.dataset.val);
+      statusEl.textContent = ['','⭐ Poor','⭐⭐ Fair','⭐⭐⭐ Good','⭐⭐⭐⭐ Great','⭐⭐⭐⭐⭐ Excellent'][ratings[key]];
+    });
+  });
+});
+function showToast(msg, dur=3000) {
+  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+document.getElementById('submit-btn').addEventListener('click', async () => {
+  const faculty_name = document.getElementById('faculty_name').value.trim();
+  const comments = document.getElementById('comments').value.trim();
+  if (!faculty_name) { showToast('⚠️ Please enter faculty name'); return; }
+  if (!formData.department) { showToast('⚠️ Please select department'); return; }
+  if (Object.values(ratings).some(v => v === null)) { showToast('⚠️ Please rate all categories'); return; }
+  if (!formData.grade) { showToast('⚠️ Please select grade'); return; }
+  const payload = { faculty_name, department: formData.department, designation: formData.designation || '', ratings: { technical_complexity: ratings.technical_complexity, cicd_understanding: ratings.cicd_understanding, presentation: ratings.presentation, overall_quality: ratings.overall_quality }, comments, grade_recommendation: GRADE_MAP[formData.grade] || formData.grade, submitted_at: new Date().toISOString() };
+  const btn = document.getElementById('submit-btn'); btn.textContent = 'Submitting…'; btn.disabled = true;
+  try {
+    const res = await fetch('/api/feedback', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    if (res.ok) {
+      showToast('✅ Feedback submitted successfully!', 4000);
+      document.getElementById('faculty_name').value = '';
+      document.getElementById('comments').value = '';
+      ['dept-btn','desig-btn','grade-btn'].forEach(id => {
+        const b = document.getElementById(id);
+        b.querySelector('.btn-text').textContent = id==='dept-btn'?'Select department':id==='desig-btn'?'Select designation':'Select grade';
+        b.classList.remove('has-value');
+      });
+      formData.department = formData.designation = formData.grade = '';
+      document.querySelectorAll('.rb').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.rating-status').forEach(s => s.textContent = 'Not rated');
+      Object.keys(ratings).forEach(k => ratings[k] = null);
+    } else { showToast('❌ Submission failed. Try again.'); }
+  } catch { showToast('❌ Network error. Check connection.'); }
+  finally { btn.textContent = 'Submit Feedback'; btn.disabled = false; }
+});
+</script>
+</body>
+</html>
