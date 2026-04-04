@@ -1,0 +1,53 @@
+name: CI/CD Multi-Branch Pipeline
+
+on:
+  push:
+    branches:
+      - dev
+      - staging
+      - prod
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REGISTRY: 504110891275.dkr.ecr.ap-south-1.amazonaws.com
+  ECR_REPOSITORY: myapp_docker_repo
+  IMAGE_TAG: feedback
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and push Docker image
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Set namespace based on branch
+        run: |
+          if [ "${{ github.ref_name }}" = "prod" ]; then
+            echo "NAMESPACE=flask-prod" >> $GITHUB_ENV
+          elif [ "${{ github.ref_name }}" = "staging" ]; then
+            echo "NAMESPACE=flask-staging" >> $GITHUB_ENV
+          else
+            echo "NAMESPACE=flask-dev" >> $GITHUB_ENV
+          fi
+
+      - name: Deploy to correct K8s namespace
+        run: |
+          echo "Deploying to namespace: $NAMESPACE"
+          echo "Branch ${{ github.ref_name }} → Namespace $NAMESPACE → ECR Image $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
